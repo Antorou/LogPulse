@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 1 week
     
+    REDIS_URL: str = "redis://localhost:6379/0"
+    SMTP_SERVER: str = "localhost"
+    SMTP_PORT: int = 1025
+    
     class Config:
         env_file = ".env"
 
