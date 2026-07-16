@@ -3,27 +3,7 @@ import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
-
-// A temporary placeholder for the Dashboard
-const Dashboard = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow border border-gray-100">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <button onClick={logout} className="text-red-600 hover:text-red-800 font-medium transition">
-            Logout
-          </button>
-        </div>
-        <p className="text-gray-600">Welcome back, <span className="font-semibold text-gray-900">{user?.email}</span>!</p>
-        <div className="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-100">
-          <p className="text-blue-800 font-medium">Your journal entries will appear here.</p>
-        </div>
-      </div>
-    </div>
-  );
-};
+import Dashboard from './pages/Dashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
