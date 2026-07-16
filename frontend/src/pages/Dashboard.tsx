@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, Save, LogOut, Pencil, Trash2, X, BarChart3, Flame, Trophy, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Calendar, Save, LogOut, Pencil, Trash2, X, BarChart3, Flame, Trophy, CheckCircle2, User as UserIcon } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 
 interface JournalEntry {
@@ -132,13 +133,22 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-500 text-sm mt-1">Logged in as {user?.email}</p>
           </div>
-          <button 
-            onClick={logout} 
-            className="flex items-center gap-2 px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg font-medium transition"
-          >
-            <LogOut size={18} />
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            <Link 
+              to="/profile" 
+              className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg font-medium transition"
+            >
+              <UserIcon size={18} />
+              Profile
+            </Link>
+            <button 
+              onClick={logout} 
+              className="flex items-center gap-2 px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg font-medium transition"
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Stats Row */}

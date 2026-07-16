@@ -9,9 +9,13 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserUpdate(BaseModel):
+    goals: str | None = None
+
 class UserResponse(UserBase):
     id: UUID
     created_at: datetime
+    goals: str | None = None
     
     model_config = ConfigDict(from_attributes=True)
 
