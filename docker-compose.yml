@@ -1,4 +1,5 @@
 services:
+  # --- Infrastructure ---
   db:
     image: postgres:15-alpine
     container_name: logpulse_db
@@ -17,6 +18,13 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: logpulse_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
   mailpit:
     image: axllent/mailpit
     container_name: logpulse_mailpit
@@ -25,11 +33,61 @@ services:
       - "1025:1025" # SMTP interface
     restart: unless-stopped
 
-  redis:
-    image: redis:7-alpine
-    container_name: logpulse_redis
+  # --- Application Backend ---
+  api:
+    build: ./backend
+    container_name: logpulse_api
+    environment:
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/logpulse
+      - REDIS_URL=redis://redis:6379/0
+      - SMTP_SERVER=mailpit
+      - SMTP_PORT=1025
     ports:
-      - "6379:6379"
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  celery_worker:
+    build: ./backend
+    container_name: logpulse_worker
+    command: celery -A app.worker.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/logpulse
+      - REDIS_URL=redis://redis:6379/0
+      - SMTP_SERVER=mailpit
+      - SMTP_PORT=1025
+    depends_on:
+      - api
+      - redis
+      - mailpit
+    restart: unless-stopped
+
+  celery_beat:
+    build: ./backend
+    container_name: logpulse_beat
+    command: celery -A app.worker.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/logpulse
+      - REDIS_URL=redis://redis:6379/0
+      - SMTP_SERVER=mailpit
+      - SMTP_PORT=1025
+    depends_on:
+      - api
+      - redis
+    restart: unless-stopped
+
+  # --- Application Frontend ---
+  frontend:
+    build: ./frontend
+    container_name: logpulse_frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
     restart: unless-stopped
 
 volumes:
