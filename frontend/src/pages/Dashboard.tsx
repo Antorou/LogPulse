@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, Save, LogOut, Pencil, Trash2, X, BarChart3 } from 'lucide-react';
+import { Calendar, Save, LogOut, Pencil, Trash2, X, BarChart3, Flame, Trophy, CheckCircle2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 
 interface JournalEntry {
@@ -19,6 +19,7 @@ interface JournalEntry {
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [stats, setStats] = useState({ current_streak: 0, longest_streak: 0, total_entries: 0 });
   const [loading, setLoading] = useState(true);
   
   // Form State
@@ -38,6 +39,8 @@ export default function Dashboard() {
     try {
       const response = await apiClient.get('/journals/');
       setEntries(response.data);
+      const statsResponse = await apiClient.get('/journals/stats');
+      setStats(statsResponse.data);
     } catch (err) {
       console.error('Failed to fetch entries', err);
     } finally {
@@ -136,6 +139,37 @@ export default function Dashboard() {
             <LogOut size={18} />
             Logout
           </button>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
+              <Flame size={24} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Current Streak</p>
+              <h3 className="text-2xl font-bold text-gray-900">{stats.current_streak} Days</h3>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+              <Trophy size={24} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Longest Streak</p>
+              <h3 className="text-2xl font-bold text-gray-900">{stats.longest_streak} Days</h3>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-500">
+              <CheckCircle2 size={24} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Total Entries</p>
+              <h3 className="text-2xl font-bold text-gray-900">{stats.total_entries}</h3>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
