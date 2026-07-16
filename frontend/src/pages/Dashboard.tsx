@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, Save, LogOut } from 'lucide-react';
+import { Calendar, Save, LogOut, Pencil, Trash2, X, BarChart3 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 
 interface JournalEntry {
   id: string;
@@ -21,6 +22,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   
   // Form State
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [meditation, setMeditation] = useState(0);
   const [reading, setReading] = useState(0);
@@ -43,26 +45,59 @@ export default function Dashboard() {
     }
   };
 
+  const handleEditClick = (entry: JournalEntry) => {
+    setEditingId(entry.id);
+    setDate(entry.date);
+    setMeditation(entry.meditation_mins);
+    setReading(entry.reading_mins);
+    setSportType(entry.sport_type || '');
+    setSportMins(entry.sport_mins);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setDate(new Date().toISOString().split('T')[0]);
+    setMeditation(0);
+    setReading(0);
+    setSportType('');
+    setSportMins(0);
+    setError('');
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this entry?')) return;
+    try {
+      await apiClient.delete(`/journals/${id}`);
+      fetchEntries();
+    } catch (err) {
+      console.error('Failed to delete entry', err);
+      alert('Failed to delete entry.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
+    const payload = {
+      date,
+      meditation_mins: meditation,
+      reading_mins: reading,
+      sport_type: sportType || null,
+      sport_mins: sportMins,
+      oral_mins: 0,
+      writing_mins: 0
+    };
+
     try {
-      await apiClient.post('/journals/', {
-        date,
-        meditation_mins: meditation,
-        reading_mins: reading,
-        sport_type: sportType || null,
-        sport_mins: sportMins,
-        oral_mins: 0,
-        writing_mins: 0
-      });
-      
-      // Reset form and refresh list
-      setMeditation(0);
-      setReading(0);
-      setSportType('');
-      setSportMins(0);
+      if (editingId) {
+        await apiClient.put(`/journals/${editingId}`, payload);
+      } else {
+        await apiClient.post('/journals/', payload);
+      }
+      handleCancelEdit();
       fetchEntries();
     } catch (err: any) {
       if (err.response?.status === 409) {
@@ -73,9 +108,20 @@ export default function Dashboard() {
     }
   };
 
+  // Prepare Chart Data (Last 7 Days)
+  const chartData = [...entries]
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(-7)
+    .map(entry => ({
+      date: entry.date.split('-').slice(1).join('/'), // Format as MM/DD
+      Meditation: entry.meditation_mins,
+      Reading: entry.reading_mins,
+      Sport: entry.sport_mins
+    }));
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         
         {/* Header */}
         <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
@@ -93,12 +139,20 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* New Entry Form */}
-          <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Calendar size={20} className="text-blue-600" />
-              New Entry
-            </h2>
+          
+          {/* Left Column: Form */}
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Calendar size={20} className="text-blue-600" />
+                {editingId ? 'Edit Entry' : 'New Entry'}
+              </h2>
+              {editingId && (
+                <button onClick={handleCancelEdit} className="text-gray-400 hover:text-gray-600">
+                  <X size={20} />
+                </button>
+              )}
+            </div>
 
             {error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6">
@@ -112,9 +166,10 @@ export default function Dashboard() {
                 <input 
                   type="date" 
                   required
+                  disabled={!!editingId}
                   value={date}
                   onChange={e => setDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                 />
               </div>
               
@@ -158,50 +213,105 @@ export default function Dashboard() {
 
               <button 
                 type="submit" 
-                className="w-full mt-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition"
+                className="w-full mt-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition shadow-sm"
               >
                 <Save size={18} />
-                Save Entry
+                {editingId ? 'Update Entry' : 'Save Entry'}
               </button>
             </form>
           </div>
 
-          {/* History Log */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900 mb-6">Journal History</h2>
+          {/* Right Column: Chart & History */}
+          <div className="lg:col-span-2 space-y-8">
             
-            {loading ? (
-              <p className="text-gray-500">Loading entries...</p>
-            ) : entries.length === 0 ? (
-              <div className="bg-gray-50 p-8 rounded-xl text-center border border-dashed border-gray-300">
-                <p className="text-gray-500">No journal entries yet. Start tracking your habits today!</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {entries.map(entry => (
-                  <div key={entry.id} className="p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:shadow-sm transition bg-white">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="font-bold text-blue-600">{entry.date}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                      <div className="bg-gray-50 px-3 py-1 rounded-md">
-                        <span className="font-medium text-gray-900">Meditation:</span> {entry.meditation_mins}m
-                      </div>
-                      <div className="bg-gray-50 px-3 py-1 rounded-md">
-                        <span className="font-medium text-gray-900">Reading:</span> {entry.reading_mins}m
-                      </div>
-                      {(entry.sport_mins > 0 || entry.sport_type) && (
-                        <div className="bg-gray-50 px-3 py-1 rounded-md">
-                          <span className="font-medium text-gray-900">Sport:</span> {entry.sport_type || 'Yes'} ({entry.sport_mins}m)
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+            {/* Chart Section */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <BarChart3 size={20} className="text-blue-600" />
+                Weekly Overview
+              </h2>
+              {chartData.length > 0 ? (
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                      <Tooltip 
+                        cursor={{ fill: '#f9fafb' }} 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px' }} />
+                      <Bar dataKey="Meditation" stackId="a" fill="#8b5cf6" radius={[0, 0, 4, 4]} />
+                      <Bar dataKey="Reading" stackId="a" fill="#3b82f6" />
+                      <Bar dataKey="Sport" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center border border-dashed border-gray-200 rounded-xl">
+                  <p className="text-gray-400">Not enough data for the chart.</p>
+                </div>
+              )}
+            </div>
 
+            {/* History Section */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900 mb-6">Journal History</h2>
+              
+              {loading ? (
+                <div className="flex justify-center p-8">
+                  <p className="text-gray-500">Loading entries...</p>
+                </div>
+              ) : entries.length === 0 ? (
+                <div className="bg-gray-50 p-8 rounded-xl text-center border border-dashed border-gray-300">
+                  <p className="text-gray-500">No journal entries yet. Start tracking your habits today!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {entries.map(entry => (
+                    <div key={entry.id} className="p-5 rounded-xl border border-gray-100 hover:border-blue-100 hover:shadow-sm transition bg-white group">
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="font-bold text-blue-600 text-lg">{entry.date}</span>
+                        
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => handleEditClick(entry)}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            title="Edit Entry"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(entry.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Delete Entry"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-3 text-sm text-gray-700">
+                        <div className="bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                          <span className="font-semibold text-gray-900">Meditation:</span> {entry.meditation_mins}m
+                        </div>
+                        <div className="bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                          <span className="font-semibold text-gray-900">Reading:</span> {entry.reading_mins}m
+                        </div>
+                        {(entry.sport_mins > 0 || entry.sport_type) && (
+                          <div className="bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                            <span className="font-semibold text-gray-900">Sport:</span> {entry.sport_type || 'Yes'} ({entry.sport_mins}m)
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       </div>
     </div>

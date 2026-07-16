@@ -66,3 +66,23 @@ def update_journal_entry(
     db.commit()
     db.refresh(entry)
     return entry
+
+@router.delete("/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_journal_entry(
+    entry_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    entry = db.query(JournalEntry).filter(
+        JournalEntry.id == entry_id, 
+        JournalEntry.user_id == current_user.id
+    ).first()
+    
+    if not entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Journal entry not found"
+        )
+        
+    db.delete(entry)
+    db.commit()
