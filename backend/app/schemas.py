@@ -11,11 +11,13 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     goals: str | None = None
+    pseudo: str | None = None
 
 class UserResponse(UserBase):
     id: UUID
     created_at: datetime
     goals: str | None = None
+    pseudo: str | None = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -32,6 +34,8 @@ class JournalEntryBase(BaseModel):
     date: date
     meditation_mins: int = 0
     reading_mins: int = 0
+    reading_book: str | None = None
+    reading_notes: str | None = None
     sport_type: str | None = None
     sport_mins: int = 0
     oral_type: str | None = None
@@ -44,6 +48,8 @@ class JournalEntryCreate(JournalEntryBase):
 class JournalEntryUpdate(BaseModel):
     meditation_mins: int | None = None
     reading_mins: int | None = None
+    reading_book: str | None = None
+    reading_notes: str | None = None
     sport_type: str | None = None
     sport_mins: int | None = None
     oral_type: str | None = None

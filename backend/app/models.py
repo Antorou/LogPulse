@@ -11,6 +11,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    pseudo = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     goals = Column(String, nullable=True)
     
@@ -24,6 +25,8 @@ class JournalEntry(Base):
     date = Column(Date, default=date.today, nullable=False)
     meditation_mins = Column(Integer, default=0)
     reading_mins = Column(Integer, default=0)
+    reading_book = Column(String, nullable=True)
+    reading_notes = Column(String, nullable=True)
     sport_type = Column(String, nullable=True)
     sport_mins = Column(Integer, default=0)
     oral_type = Column(String, nullable=True)

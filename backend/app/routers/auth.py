@@ -49,6 +49,8 @@ def get_me(current_user: User = Depends(get_current_user)):
 def update_me(user_update: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if user_update.goals is not None:
         current_user.goals = user_update.goals
+    if user_update.pseudo is not None:
+        current_user.pseudo = user_update.pseudo
     db.commit()
     db.refresh(current_user)
     return current_user

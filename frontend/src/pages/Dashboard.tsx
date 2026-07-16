@@ -10,12 +10,53 @@ interface JournalEntry {
   date: string;
   meditation_mins: number;
   reading_mins: number;
+  reading_book: string | null;
+  reading_notes: string | null;
   sport_type: string | null;
   sport_mins: number;
   oral_type: string | null;
   oral_mins: number;
   writing_mins: number;
 }
+
+const DurationSelector = ({ value, onChange, disabled }: { value: number, onChange: (val: number) => void, disabled?: boolean }) => {
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return (
+    <div className="flex gap-2">
+      <select 
+        disabled={disabled}
+        value={hours} 
+        onChange={e => onChange(Number(e.target.value) * 60 + minutes)} 
+        className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white disabled:bg-gray-100 text-sm"
+      >
+        {[...Array(13)].map((_, i) => <option key={`h-${i}`} value={i}>{i}h</option>)}
+      </select>
+      <select 
+        disabled={disabled}
+        value={minutes} 
+        onChange={e => onChange(hours * 60 + Number(e.target.value))} 
+        className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white disabled:bg-gray-100 text-sm"
+      >
+        {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(m => <option key={`m-${m}`} value={m}>{m}m</option>)}
+      </select>
+    </div>
+  );
+};
+
+const formatDuration = (totalMins: number) => {
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
+};
+
+const formatDate = (dateString: string) => {
+  const [year, month, day] = dateString.split('-');
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+};
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -28,6 +69,8 @@ export default function Dashboard() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [meditation, setMeditation] = useState(0);
   const [reading, setReading] = useState(0);
+  const [readingBook, setReadingBook] = useState('');
+  const [readingNotes, setReadingNotes] = useState('');
   const [sportType, setSportType] = useState('');
   const [sportMins, setSportMins] = useState(0);
   const [error, setError] = useState('');
@@ -54,6 +97,8 @@ export default function Dashboard() {
     setDate(entry.date);
     setMeditation(entry.meditation_mins);
     setReading(entry.reading_mins);
+    setReadingBook(entry.reading_book || '');
+    setReadingNotes(entry.reading_notes || '');
     setSportType(entry.sport_type || '');
     setSportMins(entry.sport_mins);
     setError('');
@@ -65,6 +110,8 @@ export default function Dashboard() {
     setDate(new Date().toISOString().split('T')[0]);
     setMeditation(0);
     setReading(0);
+    setReadingBook('');
+    setReadingNotes('');
     setSportType('');
     setSportMins(0);
     setError('');
@@ -89,6 +136,8 @@ export default function Dashboard() {
       date,
       meditation_mins: meditation,
       reading_mins: reading,
+      reading_book: readingBook || null,
+      reading_notes: readingNotes || null,
       sport_type: sportType || null,
       sport_mins: sportMins,
       oral_mins: 0,
@@ -131,7 +180,7 @@ export default function Dashboard() {
         <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500 text-sm mt-1">Logged in as {user?.email}</p>
+            <p className="text-gray-500 text-sm mt-1">Logged in as <span className="font-semibold text-gray-700">{user?.pseudo || user?.email}</span></p>
           </div>
           <div className="flex items-center gap-3">
             <Link 
@@ -219,22 +268,37 @@ export default function Dashboard() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Meditation (m)</label>
-                  <input 
-                    type="number" min="0" 
-                    value={meditation} onChange={e => setMeditation(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Meditation Duration</label>
+                  <DurationSelector value={meditation} onChange={setMeditation} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Reading (m)</label>
-                  <input 
-                    type="number" min="0" 
-                    value={reading} onChange={e => setReading(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reading Duration</label>
+                  <DurationSelector value={reading} onChange={setReading} />
                 </div>
               </div>
+
+              {reading > 0 && (
+                <div className="space-y-4 bg-gray-50/80 p-4 rounded-xl border border-gray-100">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Book Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="What are you reading?"
+                      value={readingBook} onChange={e => setReadingBook(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">What I've Learned</label>
+                    <textarea 
+                      rows={3}
+                      placeholder="Jot down key takeaways or thoughts..."
+                      value={readingNotes} onChange={e => setReadingNotes(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white resize-y text-sm"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Sport Type</label>
@@ -247,12 +311,8 @@ export default function Dashboard() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sport Duration (m)</label>
-                <input 
-                  type="number" min="0" 
-                  value={sportMins} onChange={e => setSportMins(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sport Duration</label>
+                <DurationSelector value={sportMins} onChange={setSportMins} />
               </div>
 
               <button 
@@ -316,7 +376,7 @@ export default function Dashboard() {
                   {entries.map(entry => (
                     <div key={entry.id} className="p-5 rounded-xl border border-gray-100 hover:border-blue-100 hover:shadow-sm transition bg-white group">
                       <div className="flex justify-between items-start mb-4">
-                        <span className="font-bold text-blue-600 text-lg">{entry.date}</span>
+                        <span className="font-bold text-blue-600 text-lg capitalize">{formatDate(entry.date)}</span>
                         
                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
@@ -336,16 +396,33 @@ export default function Dashboard() {
                         </div>
                       </div>
                       
-                      <div className="flex flex-wrap gap-3 text-sm text-gray-700">
-                        <div className="bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                          <span className="font-semibold text-gray-900">Meditation:</span> {entry.meditation_mins}m
-                        </div>
-                        <div className="bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                          <span className="font-semibold text-gray-900">Reading:</span> {entry.reading_mins}m
-                        </div>
+                      <div className="flex flex-col gap-3 text-sm text-gray-700 mt-2">
+                        {entry.meditation_mins > 0 && (
+                          <div className="bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 w-fit">
+                            <span className="font-semibold text-gray-900">Meditation:</span> {formatDuration(entry.meditation_mins)}
+                          </div>
+                        )}
                         {(entry.sport_mins > 0 || entry.sport_type) && (
-                          <div className="bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                            <span className="font-semibold text-gray-900">Sport:</span> {entry.sport_type || 'Yes'} ({entry.sport_mins}m)
+                          <div className="bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 w-fit">
+                            <span className="font-semibold text-gray-900">Sport:</span> {entry.sport_type || 'Yes'} ({formatDuration(entry.sport_mins)})
+                          </div>
+                        )}
+                        {entry.reading_mins > 0 && (
+                          <div className="bg-blue-50/50 px-4 py-3 rounded-lg border border-blue-100">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900">Reading:</span> 
+                              <span>{formatDuration(entry.reading_mins)}</span>
+                            </div>
+                            {entry.reading_book && (
+                              <p className="mt-2 font-medium text-blue-700 flex items-center gap-1">
+                                📖 {entry.reading_book}
+                              </p>
+                            )}
+                            {entry.reading_notes && (
+                              <p className="mt-1 text-gray-600 italic leading-relaxed">
+                                "{entry.reading_notes}"
+                              </p>
+                            )}
                           </div>
                         )}
                       </div>

@@ -5,6 +5,7 @@ export interface User {
   id: string;
   email: string;
   goals?: string | null;
+  pseudo?: string | null;
 }
 
 interface AuthContextType {

@@ -6,12 +6,14 @@ import { Link } from 'react-router-dom';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
+  const [pseudo, setPseudo] = useState(user?.pseudo || '');
   const [goals, setGoals] = useState(user?.goals || '');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (user?.goals) setGoals(user.goals);
+    if (user?.pseudo) setPseudo(user.pseudo);
   }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -19,11 +21,11 @@ export default function Profile() {
     setSaving(true);
     setMessage('');
     try {
-      const response = await apiClient.put('/auth/me', { goals });
+      const response = await apiClient.put('/auth/me', { goals, pseudo: pseudo || null });
       updateUser(response.data);
-      setMessage('Goals updated successfully!');
+      setMessage('Profile updated successfully!');
     } catch (err) {
-      setMessage('Failed to update goals.');
+      setMessage('Failed to update profile.');
     } finally {
       setSaving(false);
     }
@@ -51,6 +53,17 @@ export default function Profile() {
 
           <form onSubmit={handleSave}>
             <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Display Name (Pseudo)</label>
+              <input 
+                type="text"
+                value={pseudo}
+                onChange={e => setPseudo(e.target.value)}
+                placeholder="What should we call you?"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+
+            <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 mb-2">My Goals</label>
               <textarea 
                 rows={6}
@@ -73,7 +86,7 @@ export default function Profile() {
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition shadow-sm disabled:opacity-50"
             >
               <Save size={20} />
-              {saving ? 'Saving...' : 'Save Goals'}
+              {saving ? 'Saving...' : 'Save Profile'}
             </button>
           </form>
         </div>
