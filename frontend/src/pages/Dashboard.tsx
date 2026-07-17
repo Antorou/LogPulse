@@ -73,6 +73,8 @@ export default function Dashboard() {
   const [readingNotes, setReadingNotes] = useState('');
   const [sportType, setSportType] = useState('');
   const [sportMins, setSportMins] = useState(0);
+  const [oralType, setOralType] = useState('');
+  const [oralMins, setOralMins] = useState(0);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -101,6 +103,8 @@ export default function Dashboard() {
     setReadingNotes(entry.reading_notes || '');
     setSportType(entry.sport_type || '');
     setSportMins(entry.sport_mins);
+    setOralType(entry.oral_type || '');
+    setOralMins(entry.oral_mins);
     setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -114,6 +118,8 @@ export default function Dashboard() {
     setReadingNotes('');
     setSportType('');
     setSportMins(0);
+    setOralType('');
+    setOralMins(0);
     setError('');
   };
 
@@ -140,7 +146,8 @@ export default function Dashboard() {
       reading_notes: readingNotes || null,
       sport_type: sportType || null,
       sport_mins: sportMins,
-      oral_mins: 0,
+      oral_type: oralType || null,
+      oral_mins: oralMins,
       writing_mins: 0
     };
 
@@ -300,19 +307,36 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sport Type</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Running, Gym"
-                  value={sportType} onChange={e => setSportType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Sport Type</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Running, Gym"
+                    value={sportType} onChange={e => setSportType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Sport Duration</label>
+                  <DurationSelector value={sportMins} onChange={setSportMins} />
+                </div>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sport Duration</label>
-                <DurationSelector value={sportMins} onChange={setSportMins} />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Oral Ex. Type</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Speech, Shadowing"
+                    value={oralType} onChange={e => setOralType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Oral Duration</label>
+                  <DurationSelector value={oralMins} onChange={setOralMins} />
+                </div>
               </div>
 
               <button 
@@ -405,6 +429,11 @@ export default function Dashboard() {
                         {(entry.sport_mins > 0 || entry.sport_type) && (
                           <div className="bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 w-fit">
                             <span className="font-semibold text-gray-900">Sport:</span> {entry.sport_type || 'Yes'} ({formatDuration(entry.sport_mins)})
+                          </div>
+                        )}
+                        {(entry.oral_mins > 0 || entry.oral_type) && (
+                          <div className="bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 w-fit">
+                            <span className="font-semibold text-gray-900">Oral Ex:</span> {entry.oral_type || 'Yes'} ({formatDuration(entry.oral_mins)})
                           </div>
                         )}
                         {entry.reading_mins > 0 && (
