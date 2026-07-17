@@ -20,20 +20,24 @@ function Home() {
   if (token) return <Navigate to="/dashboard" />;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="text-center bg-white p-12 rounded-3xl shadow-xl border border-gray-100 max-w-lg w-full">
-        <h1 className="text-5xl font-extrabold text-blue-600 mb-4 tracking-tight">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Decorative blocks */}
+      <div className="absolute w-64 h-64 bg-brand-tertiary right-0 md:right-32 top-20 -skew-y-6 hidden sm:block"></div>
+      <div className="absolute w-48 h-48 bg-brand-quaternary left-0 md:left-32 bottom-20 rotate-12 hidden sm:block"></div>
+      
+      <div className="immersive-card max-w-xl w-full text-center z-10 mt-12 mb-12">
+        <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tight mb-4">
           LogPulse
         </h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Your Daily Habit Journaling Application
+        <p className="text-xl md:text-2xl font-medium mb-10 leading-snug uppercase max-w-sm mx-auto">
+          Track Your Habits. Log Your Evolution.
         </p>
-        <div className="flex gap-4 justify-center">
-          <Link to="/login" className="px-8 py-3 bg-blue-600 text-white font-medium rounded-xl shadow hover:bg-blue-700 transition">
-            Login
+        <div className="flex flex-col sm:flex-row gap-6 justify-center mt-6">
+          <Link to="/login" className="immersive-btn bg-brand-quaternary text-white border-white">
+            <span>ENTER THE EXHIBIT</span>
           </Link>
-          <Link to="/register" className="px-8 py-3 bg-white text-blue-600 font-medium border-2 border-blue-100 rounded-xl hover:bg-blue-50 transition">
-            Register
+          <Link to="/register" className="immersive-btn">
+            <span>REGISTER PASS</span>
           </Link>
         </div>
       </div>

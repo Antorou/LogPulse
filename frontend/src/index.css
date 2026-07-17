@@ -1,10 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #3b82f6;
-  --color-primary-foreground: #ffffff;
+  --color-primary: #00592B;
+  --color-canvas: #00592B;
+  --color-secondary: #0023D1;
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-surface: #FFFFFF;
+  --color-object-surface: #FFFFFF;
+  --color-text: #111827;
+  --color-border-strong: #000000;
+  --color-brand-tertiary: #0023D1;
+  --color-brand-quaternary: #FF2E9F;
+
+  --font-primary: 'Oswald', sans-serif;
+  --font-display: 'Oswald', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Oswald', sans-serif; /* default to primary */
+
+  --shadow-hard-sm: 3px 3px 0 #000000;
+  --shadow-hard-md: 6px 6px 0 #000000;
+  --shadow-hard-lg: 10px 10px 0 #000000;
 }
 
 body {
-  @apply bg-gray-50 text-gray-900 m-0 p-0 font-sans;
+  @apply bg-canvas text-text m-0 p-0 font-primary selection:bg-brand-quaternary selection:text-white;
+}
+
+.immersive-btn {
+  @apply bg-surface text-text border-[3px] border-border-strong font-bold px-6 py-3 cursor-pointer transition-all duration-150 inline-flex justify-center items-center gap-2;
+  transform: skew(-6deg);
+  box-shadow: 6px 6px 0 var(--color-border-strong);
+}
+.immersive-btn > * {
+  transform: skew(6deg);
+}
+.immersive-btn:hover {
+  transform: skew(-6deg) translate(-2px, -2px);
+  box-shadow: 9px 9px 0 var(--color-border-strong);
+}
+.immersive-btn:active {
+  transform: skew(-6deg) translate(3px, 3px);
+  box-shadow: 3px 3px 0 var(--color-border-strong);
+}
+
+.immersive-card {
+  @apply bg-surface text-text border-[3px] sm:border-[4px] border-border-strong p-6 relative;
+  box-shadow: 6px 6px 0 var(--color-border-strong);
+}
+
+.immersive-input {
+  @apply bg-surface text-text border-[3px] border-border-strong px-4 py-3 font-primary text-base w-full outline-none transition-all;
+}
+.immersive-input:focus-visible {
+  outline: 3px solid var(--color-brand-tertiary);
+  outline-offset: 3px;
 }
