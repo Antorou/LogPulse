@@ -2,8 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
 from .routers import auth, journals
+from .s3 import init_s3_bucket
 
 app = FastAPI(title="LogPulse API")
+
+@app.on_event("startup")
+def on_startup():
+    init_s3_bucket()
 
 app.add_middleware(
     CORSMiddleware,

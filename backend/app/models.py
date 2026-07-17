@@ -12,6 +12,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     pseudo = Column(String, nullable=True)
+    profile_picture_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     goals = Column(String, nullable=True)
     
@@ -32,6 +33,7 @@ class JournalEntry(Base):
     oral_type = Column(String, nullable=True)
     oral_mins = Column(Integer, default=0)
     writing_mins = Column(Integer, default=0)
+    image_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="entries")

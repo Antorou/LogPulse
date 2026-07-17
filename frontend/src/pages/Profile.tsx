@@ -8,6 +8,8 @@ export default function Profile() {
   const { user, updateUser } = useAuth();
   const [pseudo, setPseudo] = useState(user?.pseudo || '');
   const [goals, setGoals] = useState(user?.goals || '');
+  const [profilePic, setProfilePic] = useState<File | null>(null);
+  const [picPreview, setPicPreview] = useState(user?.profile_picture_url || null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -21,6 +23,13 @@ export default function Profile() {
     setSaving(true);
     setMessage('');
     try {
+      if (profilePic) {
+        const formData = new FormData();
+        formData.append('file', profilePic);
+        await apiClient.post('/auth/me/picture', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
       const response = await apiClient.put('/auth/me', { goals, pseudo: pseudo || null });
       updateUser(response.data);
       setMessage('Profile updated successfully!');
@@ -42,9 +51,24 @@ export default function Profile() {
 
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-            <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
-              <UserIcon size={32} />
-            </div>
+            <label className="relative cursor-pointer group">
+              {picPreview || user?.profile_picture_url ? (
+                <img src={picPreview || user?.profile_picture_url || ''} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-blue-100" />
+              ) : (
+                <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center border-2 border-transparent">
+                  <UserIcon size={36} />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <span className="text-white text-xs font-medium">Edit</span>
+              </div>
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setProfilePic(e.target.files[0]);
+                  setPicPreview(URL.createObjectURL(e.target.files[0]));
+                }
+              }} />
+            </label>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Your Profile</h1>
               <p className="text-gray-500">{user?.email}</p>

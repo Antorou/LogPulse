@@ -6,6 +6,7 @@ export interface User {
   email: string;
   goals?: string | null;
   pseudo?: string | null;
+  profile_picture_url?: string | null;
 }
 
 interface AuthContextType {

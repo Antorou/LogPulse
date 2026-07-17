@@ -17,6 +17,7 @@ interface JournalEntry {
   oral_type: string | null;
   oral_mins: number;
   writing_mins: number;
+  image_url: string | null;
 }
 
 const DurationSelector = ({ value, onChange, disabled }: { value: number, onChange: (val: number) => void, disabled?: boolean }) => {
@@ -75,6 +76,8 @@ export default function Dashboard() {
   const [sportMins, setSportMins] = useState(0);
   const [oralType, setOralType] = useState('');
   const [oralMins, setOralMins] = useState(0);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -120,6 +123,8 @@ export default function Dashboard() {
     setSportMins(0);
     setOralType('');
     setOralMins(0);
+    setImageFile(null);
+    setImagePreview(null);
     setError('');
   };
 
@@ -152,11 +157,23 @@ export default function Dashboard() {
     };
 
     try {
+      let savedEntry;
       if (editingId) {
-        await apiClient.put(`/journals/${editingId}`, payload);
+        const res = await apiClient.put(`/journals/${editingId}`, payload);
+        savedEntry = res.data;
       } else {
-        await apiClient.post('/journals/', payload);
+        const res = await apiClient.post('/journals/', payload);
+        savedEntry = res.data;
       }
+
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        await apiClient.post(`/journals/${savedEntry.id}/image`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
+
       handleCancelEdit();
       fetchEntries();
     } catch (err: any) {
@@ -194,7 +211,11 @@ export default function Dashboard() {
               to="/profile" 
               className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg font-medium transition"
             >
-              <UserIcon size={18} />
+              {user?.profile_picture_url ? (
+                <img src={user.profile_picture_url} alt="Profile" className="w-6 h-6 rounded-full object-cover" />
+              ) : (
+                <UserIcon size={18} />
+              )}
               Profile
             </Link>
             <button 
@@ -339,6 +360,30 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Daily Picture</label>
+                <div className="flex items-center gap-4">
+                  <label className="flex-1 cursor-pointer bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 text-gray-600 font-medium py-3 px-4 rounded-xl text-center transition">
+                    <span>{imageFile ? imageFile.name : 'Take a photo or choose image'}</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      capture="environment" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setImageFile(e.target.files[0]);
+                          setImagePreview(URL.createObjectURL(e.target.files[0]));
+                        }
+                      }}
+                    />
+                  </label>
+                  {imagePreview && (
+                    <img src={imagePreview} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-gray-200 shadow-sm" />
+                  )}
+                </div>
+              </div>
+
               <button 
                 type="submit" 
                 className="w-full mt-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition shadow-sm"
@@ -455,6 +500,12 @@ export default function Dashboard() {
                           </div>
                         )}
                       </div>
+                      
+                      {entry.image_url && (
+                        <div className="mt-4">
+                          <img src={entry.image_url} alt="Daily snapshot" className="w-full max-w-sm rounded-xl border border-gray-100 object-cover shadow-sm" />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -18,6 +18,7 @@ class UserResponse(UserBase):
     created_at: datetime
     goals: str | None = None
     pseudo: str | None = None
+    profile_picture_url: str | None = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -41,6 +42,7 @@ class JournalEntryBase(BaseModel):
     oral_type: str | None = None
     oral_mins: int = 0
     writing_mins: int = 0
+    image_url: str | None = None
 
 class JournalEntryCreate(JournalEntryBase):
     pass
@@ -55,6 +57,7 @@ class JournalEntryUpdate(BaseModel):
     oral_type: str | None = None
     oral_mins: int | None = None
     writing_mins: int | None = None
+    image_url: str | None = None
 
 class JournalEntryResponse(JournalEntryBase):
     id: UUID

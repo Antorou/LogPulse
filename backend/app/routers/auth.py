@@ -54,3 +54,20 @@ def update_me(user_update: UserUpdate, current_user: User = Depends(get_current_
     db.commit()
     db.refresh(current_user)
     return current_user
+
+from fastapi import UploadFile, File
+from ..s3 import upload_image
+
+@router.post("/me/picture", response_model=UserResponse)
+def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    filename = f"profiles/{current_user.id}_{file.filename}"
+    image_url = upload_image(file.file, filename, file.content_type)
+    
+    current_user.profile_picture_url = image_url
+    db.commit()
+    db.refresh(current_user)
+    return current_user

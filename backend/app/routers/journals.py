@@ -81,6 +81,29 @@ def get_journal_stats(
         "total_entries": len(dates)
     }
 
+from fastapi import UploadFile, File
+from ..s3 import upload_image
+from uuid import UUID
+
+@router.post("/{entry_id}/image", response_model=JournalEntryResponse)
+def upload_journal_image(
+    entry_id: UUID,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    entry = db.query(JournalEntry).filter(JournalEntry.id == entry_id, JournalEntry.user_id == current_user.id).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+        
+    filename = f"{current_user.id}/{entry.id}_{file.filename}"
+    image_url = upload_image(file.file, filename, file.content_type)
+    
+    entry.image_url = image_url
+    db.commit()
+    db.refresh(entry)
+    return entry
+
 @router.get("/", response_model=List[JournalEntryResponse])
 def get_journal_entries(
     current_user: User = Depends(get_current_user),
