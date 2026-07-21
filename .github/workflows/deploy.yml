@@ -1,0 +1,29 @@
+name: LogPulse Assembly Line
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Build Backend Image
+        run: docker build -t logpulse-api:latest -f backend/Dockerfile backend/
+
+      - name: ⚛️ Build Frontend Image
+        run: docker build -t logpulse-frontend:latest -f frontend/Dockerfile frontend/
+
+      - name: 🚢 Inject Images into k3d
+        run: k3d image import logpulse-api:latest logpulse-frontend:latest -c logpulse-cluster
+
+      - name: 🔄 Restart Pods
+        run: |
+          kubectl rollout restart deployment api celery-worker celery-beat frontend -n logpulse
+          kubectl rollout status deployment api -n logpulse
+          kubectl rollout status deployment frontend -n logpulse
