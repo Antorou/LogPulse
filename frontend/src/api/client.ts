@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create a custom Axios instance
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8000', // Our FastAPI backend
+  baseURL: '/api', // Use relative path so Ingress routes it
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

@@ -17,14 +17,14 @@ def on_startup():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "http://logpulse.local"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(journals.router)
+app.include_router(auth.router, prefix="/api")
+app.include_router(journals.router, prefix="/api")
 
 @app.get("/health")
 def health_check():

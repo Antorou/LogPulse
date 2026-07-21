@@ -61,10 +61,22 @@ Our services are running, but we can't access our frontend or API from our brows
 
 ---
 
-## 🎓 The Educational Contract
+## 🚀 Phase 6: The Next Frontier (Advanced Infrastructure)
 
-As your mentor, I will **not** give you one giant YAML file with 1,000 lines of configuration. 
+With the core architecture running flawlessly, we are now ready to implement enterprise-grade enhancements. Choose your next adventure:
 
-When you are ready to begin, simply tell me: **"Mentor, let's start with Step 5.1"**. I will explain the concepts for that specific step, provide you with a small, digestible snippet of code, and wait for you to apply and verify it before we move on.
+### Adventure A: The Global Gateway (Cloudflare Tunnels)
+- **Goal:** Access `logpulse.local` securely from anywhere in the world (e.g., from your phone) without exposing your home IP address or using a VPN.
+- **Action:** Deploy a `cloudflared` pod inside the cluster to create a secure, outbound-only Zero Trust tunnel to the internet.
 
-Take a breath, and let's orchestrate!
+### Adventure B: The Assembly Line (CI/CD with GitHub Actions)
+- **Goal:** Stop manually building Docker images and running `kubectl apply`.
+- **Action:** Create a GitHub Actions workflow. When code is pushed to `main`, GitHub automatically builds the images. We will set up a Self-Hosted Runner on the Ubuntu machine so the code deploys automatically.
+
+### Adventure C: The Watchtower (Prometheus & Grafana)
+- **Goal:** Gain complete observability into the cluster's health.
+- **Action:** Deploy the `kube-prometheus-stack` via Helm. Set up beautiful dark-mode dashboards to monitor CPU/RAM usage, API response times, and Celery queue lengths.
+
+### Adventure D: The Robot Administrator (GitOps with ArgoCD)
+- **Goal:** Manage infrastructure entirely through Git (GitOps).
+- **Action:** Install ArgoCD inside the cluster. It will continuously monitor the `k8s/` folder in the GitHub repository and instantly synchronize any changes to the live cluster. Humans never type `kubectl apply` again.
