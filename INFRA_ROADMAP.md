@@ -65,18 +65,18 @@ Our services are running, but we can't access our frontend or API from our brows
 
 With the core architecture running flawlessly, we are now ready to implement enterprise-grade enhancements. Choose your next adventure:
 
-### Adventure A: The Global Gateway (Cloudflare Tunnels)
+### [x] Adventure A: The Global Gateway (Cloudflare Tunnels)
 - **Goal:** Access `logpulse.local` securely from anywhere in the world (e.g., from your phone) without exposing your home IP address or using a VPN.
 - **Action:** Deploy a `cloudflared` pod inside the cluster to create a secure, outbound-only Zero Trust tunnel to the internet.
 
-### Adventure B: The Assembly Line (CI/CD with GitHub Actions)
+### [x] Adventure B: The Assembly Line (CI/CD with GitHub Actions)
 - **Goal:** Stop manually building Docker images and running `kubectl apply`.
 - **Action:** Create a GitHub Actions workflow. When code is pushed to `main`, GitHub automatically builds the images. We will set up a Self-Hosted Runner on the Ubuntu machine so the code deploys automatically.
 
-### Adventure C: The Watchtower (Prometheus & Grafana)
+### [ ] Adventure C: The Watchtower (Prometheus & Grafana)
 - **Goal:** Gain complete observability into the cluster's health.
 - **Action:** Deploy the `kube-prometheus-stack` via Helm. Set up beautiful dark-mode dashboards to monitor CPU/RAM usage, API response times, and Celery queue lengths.
 
-### Adventure D: The Robot Administrator (GitOps with ArgoCD)
+### [x] Adventure D: The Robot Administrator (GitOps with ArgoCD)
 - **Goal:** Manage infrastructure entirely through Git (GitOps).
 - **Action:** Install ArgoCD inside the cluster. It will continuously monitor the `k8s/` folder in the GitHub repository and instantly synchronize any changes to the live cluster. Humans never type `kubectl apply` again.
