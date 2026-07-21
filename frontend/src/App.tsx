@@ -9,15 +9,15 @@ import NewEntry from './pages/NewEntry';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { token, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   if (isLoading) return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading...</div>;
-  if (!token) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" />;
   return <>{children}</>;
 };
 
 function Home() {
-  const { token } = useAuth();
-  if (token) return <Navigate to="/dashboard" />;
+  const { user } = useAuth();
+  if (user) return <Navigate to="/dashboard" />;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">

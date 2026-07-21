@@ -84,6 +84,7 @@ def get_journal_stats(
 from fastapi import UploadFile, File
 from ..s3 import upload_image
 from uuid import UUID
+import uuid
 
 @router.post("/{entry_id}/image", response_model=JournalEntryResponse)
 def upload_journal_image(
@@ -96,7 +97,11 @@ def upload_journal_image(
     if not entry:
         raise HTTPException(status_code=404, detail="Entry not found")
         
-    filename = f"{current_user.id}/{entry.id}_{file.filename}"
+    if file.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+        raise HTTPException(status_code=400, detail="Invalid image type")
+        
+    file_extension = file.filename.split(".")[-1]
+    filename = f"{current_user.id}/{entry.id}_{uuid.uuid4()}.{file_extension}"
     image_url = upload_image(file.file, filename, file.content_type)
     
     entry.image_url = image_url

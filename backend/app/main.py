@@ -3,8 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
 from .routers import auth, journals
 from .s3 import init_s3_bucket
+from .limiter import limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 
 app = FastAPI(title="LogPulse API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.on_event("startup")
 def on_startup():

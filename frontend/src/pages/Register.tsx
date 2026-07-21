@@ -18,10 +18,10 @@ export default function Register() {
       const formData = new URLSearchParams();
       formData.append('username', email);
       formData.append('password', password);
-      const loginRes = await apiClient.post('/auth/login', formData, {
+      await apiClient.post('/auth/login', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
-      login(loginRes.data.access_token);
+      await login();
       navigate('/dashboard');
     } catch (err) {
       setError('Registration failed. Try again.');

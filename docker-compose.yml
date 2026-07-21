@@ -42,6 +42,9 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SMTP_SERVER=mailpit
       - SMTP_PORT=1025
+      - SECRET_KEY=super-secret-key-for-local-dev-only-change-in-prod
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
     ports:
       - "8000:8000"
     depends_on:
@@ -60,6 +63,9 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SMTP_SERVER=mailpit
       - SMTP_PORT=1025
+      - SECRET_KEY=super-secret-key-for-local-dev-only-change-in-prod
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
     depends_on:
       - api
       - redis
@@ -75,6 +81,9 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SMTP_SERVER=mailpit
       - SMTP_PORT=1025
+      - SECRET_KEY=super-secret-key-for-local-dev-only-change-in-prod
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
     depends_on:
       - api
       - redis

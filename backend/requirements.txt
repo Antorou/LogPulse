@@ -6,7 +6,8 @@ psycopg[binary]
 pydantic[email]
 pydantic-settings
 passlib[bcrypt]
-python-jose[cryptography]
+PyJWT[crypto]
+slowapi
 python-multipart
 celery
 redis

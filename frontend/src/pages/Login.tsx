@@ -16,10 +16,10 @@ export default function Login() {
       const formData = new URLSearchParams();
       formData.append('username', email);
       formData.append('password', password);
-      const response = await apiClient.post('/auth/login', formData, {
+      await apiClient.post('/auth/login', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
-      login(response.data.access_token);
+      await login();
       navigate('/dashboard');
     } catch (err) {
       setError('Invalid credentials');
