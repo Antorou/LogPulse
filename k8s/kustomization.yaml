@@ -9,3 +9,14 @@ resources:
   - postgres/service.yaml
   - redis/deployment.yaml
   - redis/service.yaml
+  - minio/pvc.yaml
+  - minio/deployment.yaml
+  - minio/service.yaml
+  - mailpit/deployment.yaml
+  - mailpit/service.yaml
+  - api/deployment.yaml
+  - api/service.yaml
+  - worker/deployment.yaml
+  - beat/deployment.yaml
+  - frontend/deployment.yaml
+  - frontend/service.yaml
