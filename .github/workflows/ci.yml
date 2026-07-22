@@ -44,6 +44,19 @@ jobs:
             exit 1
           }
 
+      - name: Wait for Postgres to accept connections
+        run: |
+          for i in {1..30}; do
+            if kubectl exec deployment/postgres -n logpulse -- pg_isready -U postgres; then
+              echo "Postgres is ready!"
+              exit 0
+            fi
+            echo "Waiting for Postgres..."
+            sleep 2
+          done
+          echo "Postgres did not start in time."
+          exit 1
+
       - name: Run Database Migrations
         run: |
           kubectl exec deployment/api -n logpulse -- alembic upgrade head
