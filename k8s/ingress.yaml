@@ -16,6 +16,13 @@ spec:
             name: api
             port:
               number: 8000
+      - path: /logpulse
+        pathType: Prefix
+        backend:
+          service:
+            name: minio
+            port:
+              number: 9000
       - path: /
         pathType: Prefix
         backend:

@@ -1,0 +1,55 @@
+name: LogPulse CI / Test Environment
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!main'
+
+jobs:
+  test-k8s-deployment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install k3d
+        run: |
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.6.0 bash
+
+      - name: Create k3d cluster
+        run: |
+          k3d cluster create logpulse-test-cluster -p "80:80@loadbalancer" -p "443:443@loadbalancer"
+
+      - name: Build Backend Image
+        run: docker build -t logpulse-api:latest -f backend/Dockerfile backend/
+
+      - name: Build Frontend Image
+        run: docker build -t logpulse-frontend:latest -f frontend/Dockerfile frontend/
+
+      - name: Inject Images into k3d
+        run: k3d image import logpulse-api:latest logpulse-frontend:latest -c logpulse-test-cluster
+
+      - name: Deploy Manifests
+        run: |
+          kubectl apply -k k8s
+
+      - name: Wait for Pods to be Ready
+        run: |
+          kubectl wait --for=condition=ready pod --all -n logpulse --timeout=180s || {
+            echo "Pods failed to become ready. Debugging info:"
+            kubectl get pods -n logpulse
+            kubectl describe pods -n logpulse
+            exit 1
+          }
+
+      - name: Run Database Migrations
+        run: |
+          kubectl exec deployment/api -n logpulse -- alembic upgrade head
+
+      - name: Test Endpoints
+        run: |
+          kubectl port-forward svc/api -n logpulse 8000:8000 &
+          sleep 5
+          curl -f http://localhost:8000/health

@@ -37,5 +37,5 @@ def upload_image(file_obj, filename: str, content_type: str):
         filename,
         ExtraArgs={"ContentType": content_type}
     )
-    # Get the base URL without internal network reference (hack for local dev returning Minio URL)
-    return f"http://localhost:9000/{settings.S3_BUCKET}/{filename}"
+    # Return relative URL to route media through the cluster ingress
+    return f"/{settings.S3_BUCKET}/{filename}"
