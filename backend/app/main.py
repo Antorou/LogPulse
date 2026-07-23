@@ -6,10 +6,14 @@ from .s3 import init_s3_bucket
 from .limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="LogPulse API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Instrument the FastAPI app and expose /metrics endpoint
+Instrumentator().instrument(app).expose(app)
 
 @app.on_event("startup")
 def on_startup():

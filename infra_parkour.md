@@ -35,3 +35,16 @@ To let the outside world in, we configured an **Ingress**.
 We didn't just throw a giant YAML file into a folder. We used **Kustomize** to structure our infrastructure hierarchically into elegant directories (`postgres/`, `api/`, `config/`).
 - **The Migration Trap:** When we finally tried to register a user, we hit a 500 error because the database was completely empty! 
 - We discovered our `.dockerignore` was hiding `alembic.ini`, and `env.py` was hardcoded to localhost. We fixed the code, rebuilt the images, and dynamically executed `kubectl exec -it deployment/api -n logpulse -- alembic upgrade head` to generate our SQL tables right inside the running cluster. 
+
+## 7. The Public Gateway & Relative Ingress (Cloudflare Tunnels)
+To access our local k3d cluster from other devices (like an iPhone) without complex network configurations, we integrated `cloudflared` to establish a secure tunnel.
+- **The Local Media Trap:** The API backend originally returned absolute URLs like `http://localhost:9000/logpulse/...` for S3/MinIO media files. While this worked locally, it failed on public tunnels (since the client device attempted to load the image from its own `localhost`).
+- **The Ingress Solution:** We updated `ingress.yaml` to route `/logpulse` directly to the `minio` container (port 9000) inside the cluster and changed `s3.py` to return relative URLs (e.g., `/logpulse/...`). This allows media requests to automatically route through whatever host the client is using (e.g., `logpulse.local` or `.trycloudflare.com`).
+
+## 8. The Watchtower (Prometheus & Grafana Observability)
+We successfully deployed cluster observability to monitor CPU/Memory load and API latencies.
+- **Backend Metrics Instrumentation:** We added `prometheus-fastapi-instrumentator` to our FastAPI backend to auto-generate metrics at the `/metrics` endpoint.
+- **Named Service Ports:** We added a `name: http-api` to our API service port so the Prometheus custom resource could correctly target the scraping interface.
+- **Resource Optimization:** We deployed `kube-prometheus-stack` via Helm with custom values to disable the Alertmanager and control-plane collectors, restricting CPU/memory resources to prevent overloading our local environment.
+- **ServiceMonitor CRD:** Created and applied a `ServiceMonitor` to scrape the backend API, allowing metrics to flow directly into Prometheus and display on Grafana dashboards via a port-forwarded deployment on port 3000.
+

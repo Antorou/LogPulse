@@ -13,3 +13,4 @@ celery
 redis
 python-multipart
 boto3
+prometheus-fastapi-instrumentator

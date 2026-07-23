@@ -1,0 +1,50 @@
+# Helm values for kube-prometheus-stack optimized for local k3d cluster
+
+# Disable Alertmanager to save memory
+alertmanager:
+  enabled: false
+
+# Configure Grafana
+grafana:
+  enabled: true
+  adminPassword: admin
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 100Mi
+
+# Disable scraping of control plane components that k3s/k3d package internally
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+# Configure Prometheus
+prometheus:
+  prometheusSpec:
+    # Look for all ServiceMonitors in the cluster, not just those matching Helm labels
+    serviceMonitorSelectorNilUsesHelmValues: false
+    
+    # Minimize data retention to save disk space
+    retention: 1d
+    
+    # Resource limits to prevent Prometheus from consuming too much memory/CPU
+    resources:
+      limits:
+        cpu: 500m
+        memory: 500Mi
+      requests:
+        cpu: 100m
+        memory: 250Mi
+    
+    # Disable persistent storage and use emptyDir for ephemeral local dev storage
+    storageSpec:
+      emptyDir:
+        medium: ""
