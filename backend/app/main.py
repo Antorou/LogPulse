@@ -25,6 +25,7 @@ Instrumentator().instrument(app).expose(app)
 
 @app.on_event("startup")
 def on_startup():
+    Base.metadata.create_all(bind=engine)
     init_s3_bucket()
 
 app.add_middleware(
