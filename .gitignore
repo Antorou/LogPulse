@@ -28,3 +28,5 @@ remote_kubeconfig
 infra_parkour.md
 INFRA_ROADMAP.md
 setup_runner.py
+launch_ec2.sh
+logpulse-key.pem

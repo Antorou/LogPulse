@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/logpulse"
+    DATABASE_URL: str = "sqlite:////data/logpulse.db"
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 1 week
@@ -10,10 +10,9 @@ class Settings(BaseSettings):
     SMTP_SERVER: str = "localhost"
     SMTP_PORT: int = 1025
     
-    S3_ENDPOINT: str = "http://minio:9000"
-    S3_ACCESS_KEY: str
-    S3_SECRET_KEY: str
-    S3_BUCKET: str = "logpulse"
+    # Files
+    STORAGE_DIR: str = "/data/media/logpulse"
+
     
     class Config:
         env_file = ".env"

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
 from .routers import auth, journals
 from .s3 import init_s3_bucket
@@ -7,10 +8,17 @@ from .limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from prometheus_fastapi_instrumentator import Instrumentator
+from .config import settings
+import os
 
 app = FastAPI(title="LogPulse API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Ensure storage dir exists before mounting
+os.makedirs(settings.STORAGE_DIR, exist_ok=True)
+app.mount("/logpulse", StaticFiles(directory=settings.STORAGE_DIR), name="logpulse")
+
 
 # Instrument the FastAPI app and expose /metrics endpoint
 Instrumentator().instrument(app).expose(app)

@@ -1,23 +1,5 @@
 services:
   # --- Infrastructure ---
-  db:
-    image: postgres:15-alpine
-    container_name: logpulse_db
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-logpulse}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     container_name: logpulse_redis
@@ -25,33 +7,21 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
-  mailpit:
-    image: axllent/mailpit
-    container_name: logpulse_mailpit
-    ports:
-      - "8025:8025" # Web UI
-      - "1025:1025" # SMTP interface
-    restart: unless-stopped
-
   # --- Application Backend ---
   api:
     build: ./backend
     container_name: logpulse_api
     environment:
-      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/logpulse
+      - DATABASE_URL=sqlite:////data/logpulse.db
       - REDIS_URL=redis://redis:6379/0
-      - SMTP_SERVER=mailpit
-      - SMTP_PORT=1025
       - SECRET_KEY=super-secret-key-for-local-dev-only-change-in-prod
-      - S3_ACCESS_KEY=minioadmin
-      - S3_SECRET_KEY=minioadmin
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_started
+    volumes:
+      - app_data:/data
     restart: unless-stopped
 
   celery_worker:
@@ -59,17 +29,14 @@ services:
     container_name: logpulse_worker
     command: celery -A app.worker.celery_app worker --loglevel=info
     environment:
-      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/logpulse
+      - DATABASE_URL=sqlite:////data/logpulse.db
       - REDIS_URL=redis://redis:6379/0
-      - SMTP_SERVER=mailpit
-      - SMTP_PORT=1025
       - SECRET_KEY=super-secret-key-for-local-dev-only-change-in-prod
-      - S3_ACCESS_KEY=minioadmin
-      - S3_SECRET_KEY=minioadmin
     depends_on:
       - api
       - redis
-      - mailpit
+    volumes:
+      - app_data:/data
     restart: unless-stopped
 
   celery_beat:
@@ -77,16 +44,14 @@ services:
     container_name: logpulse_beat
     command: celery -A app.worker.celery_app beat --loglevel=info
     environment:
-      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/logpulse
+      - DATABASE_URL=sqlite:////data/logpulse.db
       - REDIS_URL=redis://redis:6379/0
-      - SMTP_SERVER=mailpit
-      - SMTP_PORT=1025
       - SECRET_KEY=super-secret-key-for-local-dev-only-change-in-prod
-      - S3_ACCESS_KEY=minioadmin
-      - S3_SECRET_KEY=minioadmin
     depends_on:
       - api
       - redis
+    volumes:
+      - app_data:/data
     restart: unless-stopped
 
   # --- Application Frontend ---
@@ -99,20 +64,5 @@ services:
       - api
     restart: unless-stopped
 
-  minio:
-    image: minio/minio
-    container_name: logpulse_minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
-    restart: unless-stopped
-
 volumes:
-  postgres_data:
-  minio_data:
+  app_data:
