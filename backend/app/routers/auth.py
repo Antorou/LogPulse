@@ -50,12 +50,13 @@ def login(request: Request, response: Response, form_data: OAuth2PasswordRequest
         samesite="lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         secure=False,
+        path="/"
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie(key="access_token", httponly=True, samesite="lax")
+    response.delete_cookie(key="access_token", httponly=True, samesite="lax", path="/")
     return {"message": "Successfully logged out"}
 
 @router.get("/me", response_model=UserResponse)
