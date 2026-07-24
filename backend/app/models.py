@@ -1,14 +1,13 @@
 import uuid
 from datetime import datetime, date
 from sqlalchemy import Column, String, Integer, Date, DateTime, ForeignKey, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .database import Base
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     pseudo = Column(String, nullable=True)
@@ -21,8 +20,8 @@ class User(Base):
 class JournalEntry(Base):
     __tablename__ = "journal_entries"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     date = Column(Date, default=date.today, nullable=False)
     meditation_mins = Column(Integer, default=0)
     reading_mins = Column(Integer, default=0)
